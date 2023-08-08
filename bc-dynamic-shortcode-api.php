@@ -3,7 +3,7 @@
  * Plugin Name: BC Plugin Dynamic Shortcode API
  * Description: Dynamic Shortcode API.
  * Version:     1.0.0
- * Author:      Better Collective A/S
+ * Author:      Better Collective G/S
  */
 
 if (!defined('ABSPATH')) {

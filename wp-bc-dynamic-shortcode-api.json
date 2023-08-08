@@ -1,9 +1,9 @@
 {
   "name" : "BC Plugin Dynamic Shortcode API",
   "slug" : "bc-dynamic-shortcode-api",
-  "download_url" : "http://bettercollective.rocks/",
+  "download_url" : "https://github.com/anojic/bc-dynamic-shortcode-api/",
   "version" : "1.0.0",
-  "author" : "Better Collective A/S",
+  "author" : "Better Collective G/S",
   "sections" : {
     "description" : "Dynamic Shortcode API"
   }

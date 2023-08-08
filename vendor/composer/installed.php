@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'bettercollective/wp-bc-dynamic-shortcode-api',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '45d02f731df8c0587195095e361093aa9cf62aae',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'bettercollective/wp-bc-dynamic-shortcode-api' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '45d02f731df8c0587195095e361093aa9cf62aae',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
