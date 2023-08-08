@@ -22,14 +22,19 @@ class ShortcodeApiUpdater
 
     public function updateShortcodeApiContentCallback()
     {
+        $postID = isset($_GET['post_id']) ? absint($_GET['post_id']) : 0;
+        $newContent = isset($_GET['new_content']) ? wp_kses_post($_GET['new_content']) : '';
 
-        $postID = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
-        $newContent = isset($_POST['new_content']) ? wp_kses_post($_POST['new_content']) : '';
-
-        $this->updateShortcodeContent($postID, $newContent);
-
-        wp_send_json_success('Content updated successfully');
+        $postContent = get_post_field('post_content', $postID);
+        if (str_contains($postContent, '[dynamic_content post_id="' . $postID . '"]')) {
+            $this->updateShortcodeContent($postID, $newContent);
+            wp_send_json_success('Content updated successfully');
+        } else {
+            wp_send_json_error('The post does not contain the [dynamic_content] block with the specified post_id.');
+        }
     }
+
+
 
     private function updateShortcodeContent($postID, $newContent)
     {
