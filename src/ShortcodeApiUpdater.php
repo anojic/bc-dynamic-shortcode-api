@@ -14,7 +14,6 @@ class ShortcodeApiUpdater
     private function __construct()
     {
         add_action('wp_ajax_update_shortcode_api_content', [$this, 'updateShortcodeApiContentCallback']);
-        add_action('wp_ajax_nopriv_update_shortcode_api_content', [$this, 'updateShortcodeApiContentCallback']);
         add_shortcode('dynamic_content', [$this, 'renderShortcode']);
     }
 
@@ -35,38 +34,31 @@ class ShortcodeApiUpdater
 
     private function updateShortcodeContent($postID, $newTitle, $newContent)
     {
-        $data = [
-            'title' => $newTitle,
-            'content' => $newContent
-        ];
-
-        update_post_meta($postID, '_dynamic_content_data', serialize($data));
+        update_post_meta($postID, '_shortcode_api_title', $newTitle);
+        update_post_meta($postID, '_shortcode_api_content', $newContent);
     }
 
 
     public static function renderShortcode($attrs)
     {
         $postID = isset($attrs['post_id']) ? absint($attrs['post_id']) : get_the_ID();
-        $data = unserialize(get_post_meta($postID, '_dynamic_content_data', true));
 
-        if (is_array($data) && !empty($data)) {
-            $title = isset($data['title']) ? esc_html($data['title']) : '';
-            $content = isset($data['content']) ? wp_kses_post($data['content']) : '';
+        $title = get_post_meta($postID, '_shortcode_api_title', true);
+        $content = get_post_meta($postID, '_shortcode_api_content', true);
 
-            $output = '';
+        $output = '';
 
-            if ($title) {
-                $output .= '<h2>' . $title . '</h2>';
-            }
-
-            if ($content) {
-                $output .= '<p>' . $content . '</p>';
-            }
-
-            return $output;
+        if ($title) {
+            $output .= '<h2>' . esc_html($title) . '</h2>';
         }
 
-        return '';
+        if ($content) {
+            $content_with_newlines = str_replace('n\\', "\n", $content);
+            $output .= '<p>' . nl2br($content_with_newlines) . '</p>';
+        }
 
+        return $output;
     }
+
+
 }
