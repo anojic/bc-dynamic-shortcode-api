@@ -13,52 +13,66 @@ class ShortcodeApiUpdater
 
     private function __construct()
     {
-        add_action('wp_ajax_update_shortcode_api_content', [$this, 'updateShortcodeApiContentCallback']);
-        add_shortcode('dynamic_content', [$this, 'renderShortcode']);
+        add_action( 'rest_api_init', [$this, 'registerRestRoute'] );
+        add_shortcode( 'dynamic_content', [$this, 'renderShortcode'] );
     }
 
-    public function updateShortcodeApiContentCallback()
+    public function registerRestRoute()
     {
-        $postID = isset($_GET['post_id']) ? absint($_GET['post_id']) : 0;
-        $newTitle = isset($_GET['new_title']) ? sanitize_text_field($_GET['new_title']) : '';
-        $newContent = isset($_GET['new_content']) ? wp_kses_post($_GET['new_content']) : '';
+        register_rest_route('shortcode-api/v1', '/update/(?P<post_id>\d+)', [
+            'methods' => 'POST',
+            'callback' => [$this, 'shortcodeApiUpdate'],
+            'args' => [
+                'post_id' => [
+                    'validate_callback' => function($param, $request, $key) {
+                        return is_numeric($param);
+                    }
+                ],
+            ],
+        ]);
+    }
 
-        $postContent = get_post_field('post_content', $postID);
-        if (str_contains($postContent, '[dynamic_content post_id="' . $postID . '"]')) {
-            $this->updateShortcodeContent($postID, $newTitle, $newContent);
-            wp_send_json_success('Content updated successfully');
+    public function shortcodeApiUpdate($request)
+    {
+        $post_id = $request->get_param('post_id');
+        $new_title = $request->get_param('new_title');
+        $new_content = $request->get_param('new_content');
+        $new_content = str_replace('n\\', '<br>', $new_content);
+
+        if ($new_title && $new_content) {
+            update_post_meta($post_id, '_shortcode_api_title', sanitize_text_field($new_title));
+            update_post_meta($post_id, '_shortcode_api_content', wp_kses_post($new_content));
+            return new \WP_REST_Response(['message' => 'Title and content updated successfully'], 200);
+        } elseif ($new_title) {
+            update_post_meta($post_id, '_shortcode_api_title', sanitize_text_field($new_title));
+            return new \WP_REST_Response(['message' => 'Title updated successfully'], 200);
+        } elseif ($new_content) {
+            update_post_meta($post_id, '_shortcode_api_content', wp_kses_post($new_content));
+            return new \WP_REST_Response(['message' => 'Content updated successfully'], 200);
         } else {
-            wp_send_json_error('The post does not contain the [dynamic_content] block with the specified post_id.');
+            return new \WP_REST_Response(['message' => 'No updates provided'], 400);
         }
     }
 
-    private function updateShortcodeContent($postID, $newTitle, $newContent)
+
+    public static function renderShortcode()
     {
-        update_post_meta($postID, '_shortcode_api_title', $newTitle);
-        update_post_meta($postID, '_shortcode_api_content', $newContent);
-    }
+        global $post;
 
-
-    public static function renderShortcode($attrs)
-    {
-        $postID = isset($attrs['post_id']) ? absint($attrs['post_id']) : get_the_ID();
-
-        $title = get_post_meta($postID, '_shortcode_api_title', true);
-        $content = get_post_meta($postID, '_shortcode_api_content', true);
+        $title = get_post_meta($post->ID, '_shortcode_api_title', true);
+        $content = get_post_meta($post->ID, '_shortcode_api_content', true);
 
         $output = '';
 
         if ($title) {
-            $output .= '<h2>' . esc_html($title) . '</h2>';
+            $output .= '<h2>' . __($title) . '</h2>';
         }
 
         if ($content) {
-            $content_with_newlines = str_replace('n\\', "\n", $content);
-            $output .= '<p>' . nl2br($content_with_newlines) . '</p>';
+            $output .= '<p>' . __($content) . '</p>';
         }
 
-        return $output;
+        return '<div id="dynamic-content">' . $output . '</div>';
     }
-
 
 }
